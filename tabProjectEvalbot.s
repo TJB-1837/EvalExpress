@@ -39,18 +39,20 @@ PIN6				EQU		0x40
 PIN7				EQU		0x80
 
 ; blinking frequency
-;DUREE   			EQU     0x000FFFFF	; Random Value
-DUREE   			EQU     0x1	; Random Value	
-	
-DUREEBLINK   		EQU     0x1;0x002FFFFF;	; Random Value
-DUREEVIRAGE			EQU		0x6;6000;	
-	
+DUREE   			EQU     0x000FFFFF; Random Value
+;DUREE   			EQU     0x1	; Random Value	
+DUREEMOTEURS		EQU		0x00000FFF;
+;DUREEMOTEURS		EQU		0x1;
+DUREEBLINK   		EQU     0x002FFFFF; Random Value
+;DUREEBLINK   		EQU     0x1
+DUREEVIRAGE			EQU		6000;
+;DUREEVIRAGE		EQU		0x3;	
 ; association de valeurs pour itinéraire
 ACTION_AVANCE		EQU 	1
 ACTION_RECULE		EQU 	2
 ACTION_GAUCHE		EQU 	3
 ACTION_DROITE		EQU 	4
-ACTION_FIN			EQU 	255
+ACTION_FIN			EQU 	15
 	
 ; itinéraires dans tes tableaux
 ;ITIN1				DCB    
@@ -157,11 +159,16 @@ __main
 		
 		
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Etat 1 : attente 
-attente1
+attente
+		ldr r7, = GPIO_PORTD_BASE+(PIN6<<2) ;Sw1
+		ldr r8, = GPIO_PORTD_BASE+(PIN7<<2) ;Sw2
+		ldr r9, = GPIO_PORTE_BASE+(PIN0<<2) ;BUMPER L
+		ldr r10, = GPIO_PORTE_BASE+(PIN1<<2) ;BUMPER R
+		
 		ldr r0,[r7]
 		cmp r0,#0
 		BEQ choixItin
-		b attente1
+		b attente
 		;vvvvvvvvvvvvvvvvvvvvvvvFin Etat 1  
 			
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Etat 2 : choixItin 
@@ -213,135 +220,116 @@ itin1
 		ldr r5, = DUREE ;allumage des leds
 		bl wait
 		
-		ldr r0,=tab1
-		ldr r1,=tabActions1
+		ldr r7,=tab1
+		ldr r8,=tabActions1
 		ldr r2,=0
-		
-doItineraire
-		ldr r0,=tab1
-		ldr r1,=tabActions1
-		;lsl r2,#2
-		;ldr r3,[r0,r2]
-		;lsr r2,#2
-		;ldrb r4,[r1,r2]
-		
-		;cmp r4,ACTION_AVANCE
-		;bleq avance
-		;add r2,#1
-
-		;cmp r4,ACTION_RECULE
-		;bleq recule
-		;add r2,#1
-		
-		;cmp r4,ACTION_GAUCHE
-		;bleq gauche
-		;add r2,#1
-
-		;cmp r4,ACTION_DROITE
-		;bleq droite
-		;add r2,#1
-		
-		;cmp r4,ACTION_FIN
-		;beq suite1
-			
-		;b doItineraire
-		
-		
-		lsl r2,#2
-		ldr r3,[r0,r2]
-		lsr r2,#2
-		ldrb r4,[r1,r2]
-		
-		cmp r4,#ACTION_AVANCE
-		bne action2
-		bl avance
-		add r2,#1
-
-action2
-		cmp r4,#ACTION_RECULE
-		bne action3
-		bl recule
-		add r2,#1
-
-action3
-		cmp r4,#ACTION_GAUCHE
-		bne action4
-		bl gauche
-		add r2,#1
-		
-action4
-		cmp r4,#ACTION_DROITE
-		bne action5
-		bl droite
-		add r2,#1
-
-action5
-		cmp r4,#ACTION_FIN
-		beq suite1
-			
 		b doItineraire
 		
-loop
-		push{lr}
-		ldr r5,=0x1;0x0000FFF
-		bl wait
-		subs r3,#1
-		bl detectionBumpers
-		cmp r3,#0
 		
-		bne loop
-		pop{lr}
-		bx lr
-		
-		
-suite1 
-		BL	MOTEUR_DROIT_OFF
-		BL	MOTEUR_GAUCHE_OFF
-		b attenteConf1
-			
-		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 3A : itin1
-		
-		
-		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 3B : itin2
-itin2		
-		BL	MOTEUR_DROIT_ON
-		BL	MOTEUR_GAUCHE_ON
+				;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 3B : itin2
+itin2	
+
 		bl allumeLed1   						
 		bl allumeLed2
 		ldr r5, = DUREE ;allumage des leds
 		bl wait
 		
-		
-		; Evalbot avance droit devant
-		BL	MOTEUR_DROIT_ARRIERE	   
-		BL	MOTEUR_GAUCHE_ARRIERE
-		
-		; Avancement pendant une période (deux WAIT)
-		ldr r5,=0x2FFFFF
-		BL	wait	; BL (Branchement vers le lien WAIT); possibilité de retour à la suite avec (BX LR)
-		
-	
+		ldr r7,=tab2
+		ldr r8,=tabActions2
+		ldr r2,=0
+		b doItineraire
 
-		
-		bl detectionBumpers
-		
-		;moteurs
-		
-		BL	MOTEUR_DROIT_OFF
-		BL	MOTEUR_GAUCHE_OFF
-		b attenteConf2
+		;CHOIX AVEC DUPLICATION DE CODE
 		
 		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 3B : itin2
 		
+		
+doItineraire
+		
+
+		lsl r2,#2
+		ldr r3,[r7,r2]
+		lsr r2,#2
+		ldrb r4,[r8,r2]
+		ldr r10,=1
+		
+		cmp r4,#ACTION_AVANCE
+		bleq avance
+	
+		cmp r4,#ACTION_RECULE
+		bleq recule
+		
+		cmp r4,#ACTION_GAUCHE
+		bleq gauche
+
+		cmp r4,#ACTION_DROITE
+		bleq droite
+		
+		cmp r4,#ACTION_FIN
+		bne suite
+		b attenteConf
+suite
+		ldr r1,=tabActionsRetour
+		add r2,#1
+		strb r4,[r1,r2]
+		b doItineraire
+		
+		
+loop
+		mov r12,lr;push {lr}
+		ldr r0,=0
+		cmp r10,#0 ; comparaison mode retour ou non r
+		beq loopRetour
+		b   loopItin
+		
+loopRetour
+		ldr r5,=DUREEMOTEURS
+		;ldr r5,=1
+		bl wait
+		subs r3,#1
+		bl detectionBumpers
+		cmp r3,#0
+		bne loopRetour
+		mov lr,r12;pop {pc}
+		bx lr
+		
+loopItin
+		ldr r5,=DUREEMOTEURS
+		;ldr r5,=1
+		bl wait
+		subs r3,#1
+		bl detectionBumpers
+		add r0,#1
+		cmp r3,#0
+		bne loopItin
+		ldr r1,=tabRetour
+		lsl r2,#2
+		add r2,#4
+		str r0,[r1,r2]
+		sub r2,#4
+		lsr r2,#2
+		mov lr,r12;pop {pc}
+		bx lr
+		
+		
+			
+		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 3A : itin1
+		
+		
+
+		
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 4 : detection bumber
 detectionBumpers
-		ldr r0,[r9]
-		cmp r0,#0
+		ldr r9, = GPIO_PORTE_BASE+(PIN0<<2) ;BUMPER L
+		ldr r10, = GPIO_PORTE_BASE+(PIN1<<2) ;BUMPER R
+		
+		ldr r1,[r9]
+		cmp r1,#0
 		; arret des 2 moteurs
 		BEQ accident
 		
-		ldr r0,[r10]
-		cmp r0,#0 
+		ldr r1,[r10]
+		cmp r1,#0 
 		; arret des 2 moteurs
 		BEQ accident
 		bx lr
@@ -349,14 +337,53 @@ detectionBumpers
 		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 4 : detection bumper
 		
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 4.5 : accident
-accident
+ecritureDebutItinRetour
+		ldr r1,=tabRetour
+		add r2,#1
+		lsl r2,#2
+		ldr r0,=12000
+		add r2,#4
+		str r0,[r1,r2]
+		ldr r0,=1000
+		add r2,#4
+		str r0,[r1,r2]
+		sub r2,#8
+		lsr r2,#2
+
+
+		ldr r1,=tabActionsRetour
+		strb r4,[r1,r2]
+		ldr r0,=ACTION_DROITE
+		add r2,#1
+		strb r0,[r1,r2]
+		ldr r0,=ACTION_RECULE
+		add r2,#1
+		strb r0,[r1,r2]
+		sub r2,#2
+		sub r2,#1
+		b itinRetour
+		
+accident		
+		add r2,#1
+		lsl r2,#2
+		ldr r1,=tabRetour
+		str r0,[r1,r2]
+		lsr r2,#2
+		
+		ldr r1,=tabActionsRetour
+		strb r4,[r1,r2]
+		sub r2,#1
+		
 		BL	MOTEUR_DROIT_OFF
 		BL	MOTEUR_GAUCHE_OFF
 		
+		
 accidentLoop
+		ldr r7, = GPIO_PORTD_BASE+(PIN6<<2) ;Sw1
+		ldr r8, = GPIO_PORTD_BASE+(PIN7<<2) ;Sw2
 		ldr r0,[r8] 
 		cmp r0,#0
-		beq attente1
+		beq ecritureDebutItinRetour
 		
 		bl allumeLed1    						
 		bl allumeLed2
@@ -373,71 +400,84 @@ accidentLoop
 		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 4.5 : accident
 
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 5 : attente de confirmation
-attenteConf1
+attenteConf
+		ldr r7, = GPIO_PORTD_BASE+(PIN6<<2) ;Sw1
+		ldr r8, = GPIO_PORTD_BASE+(PIN7<<2) ;Sw2
+		
 		ldr r0,[r8]
 		cmp r0,#0
-		beq itinRetour1
+		beq ecritureDebutItinRetour
 	
         bl eteintLed1    						     
 		bl allumeLed2  
         ldr r5, = DUREEBLINK						
 		bl wait
 		
+		ldr r0,[r8]
+		cmp r0,#0
+		beq ecritureDebutItinRetour
+		
         bl allumeLed1  							
 		bl eteintLed2  
         ldr r5, = DUREEBLINK							
 		bl wait
 		
-		b attenteConf1
-		
-attenteConf2
-		ldr r0,[r8]
-		cmp r0,#0
-		beq itinRetour2
-	
-        bl eteintLed1    						     
-		bl allumeLed2    						;; Eteint LED car r2 = 0x00      
-        ldr r5, = DUREEBLINK 						;; pour la duree de la boucle d'attente1 (wait1)
-		bl wait
-		
-        bl allumeLed1   							
-		bl eteintLed2  							;; Allume LED1&2 portF broche 4&5 : 00110000 (contenu de r3)
-        ldr r5, = DUREEBLINK							;; pour la duree de la boucle d'attente2 (wait2)
-		bl wait
-		
-		b attenteConf2
+		b attenteConf
 	
 		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 5 : attente de confirmation
 		
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 6A : itinRetour1
-itinRetour1		
+itinRetour		
 		bl eteintLed1    						
 		bl eteintLed2
 		ldr r5, = DUREE 
 		bl wait
-		bl detectionBumpers
+		ldr r7,=tabRetour
+		ldr r8,=tabActionsRetour
+		ldr r0,=ACTION_FIN
+		strb r0,[r8]
+		ldr r0,=0
 		
-		;moteurs
+loopIndex		
+		ldrb r1,[r8,r0]
+		cmp r1,#ACTION_RECULE
+		beq findR2
+		add r0,#1
+		b loopIndex
 		
-		b attente1
+findR2
+		mov r2,r0
+		b doItineraireRetour
+		
+doItineraireRetour
+		
+		lsl r2,#2
+		ldr r3,[r7,r2]
+		lsr r2,#2
+		ldrb r4,[r8,r2]
+		ldr r10,=0
+		
+		cmp r4,#ACTION_AVANCE
+		bleq avance
+
+		cmp r4,#ACTION_RECULE
+		bleq recule
+		
+		cmp r4,#ACTION_GAUCHE
+		bleq gauche
+
+		cmp r4,#ACTION_DROITE
+		bleq droite
+		
+		cmp r4,#ACTION_FIN
+		beq attente
+		
+		sub r2,#1
+		b doItineraireRetour		
+		
 		
 		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 6A : itinRetour1
-		
-		
-		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 6B : itinRetour2
-itinRetour2
-		bl eteintLed1    						
-		bl eteintLed2
-		ldr r5, = DUREE 
-		bl wait
-		bl detectionBumpers
-		
-		;moteurs
-		
-		b attente1	
-		
-		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 6B : itinRetour2		
-		
+				
 
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 2 : choix itin
 		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 2 : choix itin
@@ -449,27 +489,31 @@ wait	subs r5, #1
 		
 		
 allumeLed1
+		ldr r11, = GPIO_PORTF_BASE + (PIN4<<2)  ;; @data Register = @base + (mask<<2) ==> LED1
 		ldr r0,=PIN4
 		str r0, [r11]
 		bx lr
 
 allumeLed2
+		ldr r12, = GPIO_PORTF_BASE + (PIN5<<2)
 		ldr r0,=PIN5
 		str r0, [r12]
 		bx lr
 
 eteintLed1
+		ldr r11, = GPIO_PORTF_BASE + (PIN4<<2)  ;; @data Register = @base + (mask<<2) ==> LED1
 		ldr r0,=0
 		str r0, [r11]
 		bx lr
 
 eteintLed2
+		ldr r12, = GPIO_PORTF_BASE + (PIN5<<2)
 		ldr r0,=0
 		str r0, [r12]
 		bx lr
 		
 avance
-		;push{lr}
+		mov r11,lr;push {lr}
 		BL	MOTEUR_DROIT_ON
 		BL	MOTEUR_GAUCHE_ON
 		BL	MOTEUR_DROIT_AVANT	   
@@ -477,10 +521,12 @@ avance
 		bl loop
 		BL	MOTEUR_DROIT_OFF
 		BL	MOTEUR_GAUCHE_OFF
-		;pop{lr}
+		;pop {pc}
+		mov lr,r11
 		bx lr
 		
 recule
+		mov r11,lr
 		BL	MOTEUR_DROIT_ON
 		BL	MOTEUR_GAUCHE_ON
 		BL	MOTEUR_DROIT_ARRIERE	   
@@ -488,48 +534,52 @@ recule
 		bl loop
 		BL	MOTEUR_DROIT_OFF	
 		BL	MOTEUR_GAUCHE_OFF
+		mov lr,r11
 		bx lr		
 		
+		
 gauche
-		BL	MOTEUR_DROIT_ON
-		BL	MOTEUR_GAUCHE_ON   
-		BL	MOTEUR_GAUCHE_AVANT
-		bl loop
-		BL	MOTEUR_DROIT_OFF
-		BL	MOTEUR_GAUCHE_OFF
-		bx lr
-
-droite
+		mov r11,lr
 		BL	MOTEUR_DROIT_ON
 		BL	MOTEUR_GAUCHE_ON   
 		BL	MOTEUR_DROIT_AVANT
+		BL	MOTEUR_GAUCHE_INVERSE
 		bl loop
 		BL	MOTEUR_DROIT_OFF
 		BL	MOTEUR_GAUCHE_OFF
+		mov lr,r11
 		bx lr
 
 
-
-
-
+droite
+		mov r11,lr
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_GAUCHE_ON   
+		BL	MOTEUR_GAUCHE_AVANT
+		BL	MOTEUR_DROIT_INVERSE
+		
+		bl loop
+		BL	MOTEUR_DROIT_OFF
+		BL	MOTEUR_GAUCHE_OFF
+		mov lr,r11
+		bx lr
 		
 		nop
 		nop
 		nop
 
-	AREA constantes,DATA,READONLY
+		AREA constantes,DATA,READONLY
 ;tab1 DCD 9000,DUREEVIRAGE,9000,DUREEVIRAGE,12000,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,6000
 
-tab1 DCD 9,DUREEVIRAGE,9,DUREEVIRAGE,12,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,6000
-tab2 DCD 3000,DUREEVIRAGE,9000,DUREEVIRAGE,18000,DUREEVIRAGE,3000,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,12000,DUREEVIRAGE,6000,DUREEVIRAGE,6000
+tab1      DCD 9000,DUREEVIRAGE,9000,DUREEVIRAGE,12000,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,6000
+tab2 	  DCD 3000,DUREEVIRAGE,9000,DUREEVIRAGE,18000,DUREEVIRAGE,3000,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,12000,DUREEVIRAGE,6000,DUREEVIRAGE,6000
 
-tabActions1 DCB ACTION_AVANCE,ACTION_GAUCHE,ACTION_DROITE,ACTION_AVANCE,ACTION_DROITE,ACTION_AVANCE,ACTION_GAUCHE,ACTION_AVANCE,ACTION_DROITE,ACTION_AVANCE,ACTION_GAUCHE,ACTION_AVANCE,ACTION_DROITE,ACTION_AVANCE,ACTION_GAUCHE,ACTION_AVANCE,ACTION_FIN
-tabActions2 DCB	1,4,1,3,1,3,1,3,1,4,1,4,1,4,1,3,1,255
+tabActions1 DCB ACTION_AVANCE,ACTION_GAUCHE,ACTION_AVANCE,ACTION_DROITE,ACTION_AVANCE,ACTION_DROITE,ACTION_AVANCE,ACTION_GAUCHE,ACTION_AVANCE,ACTION_DROITE,ACTION_AVANCE,ACTION_GAUCHE,ACTION_AVANCE,ACTION_DROITE,ACTION_AVANCE,ACTION_GAUCHE,ACTION_AVANCE,ACTION_FIN
+tabActions2 DCB	1,4,1,3,1,3,1,3,1,4,1,4,1,4,1,3,1,15
 
-
-	AREA variables, DATA, READWRITE
-tabRetour 		SPACE 50
-tabActionRetour SPACE 50
+		AREA variables, DATA, READWRITE
+tabRetour 		SPACE 100
+tabActionsRetour SPACE 50
 		
 		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin utils
 		

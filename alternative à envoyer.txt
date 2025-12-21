@@ -1,0 +1,28 @@
+		cmp r4,#ACTION_AVANCE
+		bne action2
+		bl avance
+		add r2,#1
+
+action2
+		cmp r4,#ACTION_RECULE
+		bne action3
+		bl recule
+		add r2,#1
+
+action3
+		cmp r4,#ACTION_GAUCHE
+		bne action4
+		bl gauche
+		add r2,#1
+		
+action4
+		cmp r4,#ACTION_DROITE
+		bne action5
+		bl droite
+		add r2,#1
+
+action5
+		cmp r4,#ACTION_FIN
+		beq suite1
+			
+		b doItineraire
