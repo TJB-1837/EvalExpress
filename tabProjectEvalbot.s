@@ -1,6 +1,6 @@
 
 	;; RK - Evalbot (Cortex M3 de Texas Instrument)
-	;; fait clignoter une seule LED connect�e au port GPIOF
+	;; fait clignoter une seule LED connect�e au port GPIOF
    	
 		AREA    |.text|, CODE, READONLY
  
@@ -47,14 +47,14 @@ DUREEBLINK   		EQU     0x002FFFFF; Random Value
 ;DUREEBLINK   		EQU     0x1
 DUREEVIRAGE			EQU		6000;
 ;DUREEVIRAGE		EQU		0x3;	
-; association de valeurs pour itin�raire
+; association de valeurs pour itineraire
 ACTION_AVANCE		EQU 	1
 ACTION_RECULE		EQU 	2
 ACTION_GAUCHE		EQU 	3
 ACTION_DROITE		EQU 	4
 ACTION_FIN			EQU 	15
 	
-; itin�raires dans tes tableaux
+; itineraires dans tes tableaux
 ;ITIN1				DCB    
 
 
@@ -67,15 +67,15 @@ ACTION_FIN			EQU 	15
 		IMPORT	MOTEUR_INIT					; initialise les moteurs (configure les pwms + GPIO)
 		
 		IMPORT	MOTEUR_DROIT_ON				; activer le moteur droit
-		IMPORT  MOTEUR_DROIT_OFF			; d�activer le moteur droit
+		IMPORT  MOTEUR_DROIT_OFF			; d�activer le moteur droit
 		IMPORT  MOTEUR_DROIT_AVANT			; moteur droit tourne vers l'avant
-		IMPORT  MOTEUR_DROIT_ARRIERE		; moteur droit tourne vers l'arri�re
+		IMPORT  MOTEUR_DROIT_ARRIERE		; moteur droit tourne vers l'arri�re
 		IMPORT  MOTEUR_DROIT_INVERSE		; inverse le sens de rotation du moteur droit
 		
 		IMPORT	MOTEUR_GAUCHE_ON			; activer le moteur gauche
-		IMPORT  MOTEUR_GAUCHE_OFF			; d�activer le moteur gauche
+		IMPORT  MOTEUR_GAUCHE_OFF			; d�activer le moteur gauche
 		IMPORT  MOTEUR_GAUCHE_AVANT			; moteur gauche tourne vers l'avant
-		IMPORT  MOTEUR_GAUCHE_ARRIERE		; moteur gauche tourne vers l'arri�re
+		IMPORT  MOTEUR_GAUCHE_ARRIERE		; moteur gauche tourne vers l'arri�re
 		IMPORT  MOTEUR_GAUCHE_INVERSE		; inverse le sens de rotation du moteur gauche
 			
 			
@@ -83,7 +83,7 @@ __main
 		; ;; Enable the Port F peripheral clock by setting bit 5 (0x20 == 0b100000)		(p291 datasheet de lm3s9B96.pdf)
 		; ;;														 (GPIO::FEDCBA)
 		ldr r6, = SYSCTL_PERIPH_GPIO  			;; RCGC2
-        mov r0, #0x00000038  					;; Enable clock sur GPIO F et E o� sont branch�s les leds (0x20 == 0b100000)
+        mov r0, #0x00000038  					;; Enable clock sur GPIO F et E o� sont branch�s les leds (0x20 == 0b100000)
 		; ;;														 									 (GPIO::FEDCBA)
         str r0, [r6]
 		
@@ -104,7 +104,7 @@ __main
         ldr r0, = PIN4 + PIN5		
         str r0, [r6]
  
-		ldr r6, = GPIO_PORTF_BASE+GPIO_O_DR2R	;; Choix de l'intensit� de sortie (2mA)
+		ldr r6, = GPIO_PORTF_BASE+GPIO_O_DR2R	;; Choix de l'intensit� de sortie (2mA)
         ldr r0, = PIN4 + PIN5			
         str r0, [r6]
 
@@ -150,6 +150,7 @@ __main
 			
 		;vvvvvvvvvvvvvvvvvvvvvvvFin configuration siwtch
 
+
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Config moteurs
 		
 		BL	MOTEUR_INIT
@@ -160,53 +161,55 @@ __main
 		
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Etat 1 : attente 
 attente
-		ldr r7, = GPIO_PORTD_BASE+(PIN6<<2) ;Sw1
-		ldr r8, = GPIO_PORTD_BASE+(PIN7<<2) ;Sw2
-		ldr r9, = GPIO_PORTE_BASE+(PIN0<<2) ;BUMPER L
+		;rechargement des adresses des data registers ; @data Register = @base + (mask<<2)
+		ldr r7, = GPIO_PORTD_BASE+(PIN6<<2) ;Sw1 
+		ldr r8, = GPIO_PORTD_BASE+(PIN7<<2) ;Sw2 
+		ldr r9, = GPIO_PORTE_BASE+(PIN0<<2) ;BUMPER L 
 		ldr r10, = GPIO_PORTE_BASE+(PIN1<<2) ;BUMPER R
+		;fin rechargement des adresses des data registers
 		
-		ldr r0,[r7]
-		cmp r0,#0
-		BEQ choixItin
-		b attente
-		;vvvvvvvvvvvvvvvvvvvvvvvFin Etat 1  
+		ldr r0,[r7]										;lecture de l'état du Sw1 à l'adresse stockée dans le registre r7
+		cmp r0,#0										;Le bouton est il pressé ? (comparé à 0 car actif à l'état bas)
+		BEQ choixItin									;Si pressé alors on passe au choix des itinéraires
+		b attente										;Si toujours pas pressé, rebouclage 
+		;vvvvvvvvvvvvvvvvvvvvvvvFin Etat 1   : attente
 			
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Etat 2 : choixItin 
 choixItin
-		ldr r0,[r9]
-		cmp r0,#0
-		BEQ attenteConfItin1
+		ldr r0,[r9]										;lecture de l'état du BP1
+		cmp r0,#0										 
+		BEQ attenteConfItin1							;Si pressé, on attend la confirmation de l'itinéraire 1
 		
-		ldr r0,[r10]
-		cmp r0,#0
-		BEQ attenteConfItin2
-		b choixItin
+		ldr r0,[r10]									;lecture de l'état du BP2
+		cmp r0,#0										
+		BEQ attenteConfItin2							;Si pressé, on attend la confirmation de l'itinéraire 2
+		b choixItin										;Sinon rebouclage
 		
 attenteConfItin1
-		bl allumeLed1
-		bl eteintLed2
+		bl allumeLed1									;Led 1 s'allume en guise de témoin 
+		bl eteintLed2									;Led 2 s'éteint (si jamais elle était précédemment allumée)
 		ldr r5, = DUREE
 		bl wait
-		ldr r0,[r10]
+		ldr r0,[r10]									;lecture de l'état du BP2
 		cmp r0,#0
-		BEQ attenteConfItin2
-		ldr r0,[r8]
+		BEQ attenteConfItin2							;Si pressé, on a donc voulu changé d'itinéraire, le 2 est sélectionné et on attend la confirmation de l'itinéraire 2
+		ldr r0,[r8]										;lecture de l'état du Sw2
 		cmp r0,#0
-		BEQ itin1
+		BEQ itin1										;Si pressé, le choix est confirmé et l'itinéraire 1 peut débuter
 		
 		b attenteConfItin1
 		
 attenteConfItin2
-		bl allumeLed2
-		bl eteintLed1
+		bl allumeLed2									;Led 2 s'allume en guise de témoin 
+		bl eteintLed1									;Led 1 s'éteint (si jamais elle était précédemment allumée)
 		ldr r5, = DUREE
 		bl wait
-		ldr r0,[r9]
+		ldr r0,[r9]										;lecture de l'état du BP1
 		cmp r0,#0
-		BEQ attenteConfItin1
-		ldr r0,[r8]
+		BEQ attenteConfItin1							;Si pressé, on a donc voulu changé d'itinéraire, le 1 est sélectionné et on attend la confirmation de l'itinéraire 1
+		ldr r0,[r8]										;lecture de l'état du Sw2
 		cmp r0,#0
-		BEQ itin2
+		BEQ itin2										;Si pressé, le choix est confirmé et l'itinéraire 2 peut débuter
 		
 		b attenteConfItin2
 		
@@ -215,64 +218,64 @@ attenteConfItin2
 		
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 3A : itin1
 itin1		
-		bl allumeLed1   						
+		bl allumeLed1   								;Le robot roule avec les "phares allumées"
 		bl allumeLed2
-		ldr r5, = DUREE ;allumage des leds
+		ldr r5, = DUREE 
 		bl wait
 		
-		ldr r7,=tab1
-		ldr r8,=tabActions1
-		ldr r2,=0
-		b doItineraire
+		ldr r7,=tab1									;Chargement du "tableau des durées de l'itinéraire 1" 
+		ldr r8,=tabActions1								;Chargement du "tableau des actions de l'itinéraire 1" 
+		ldr r2,=0										;Initialisation du compteur
+		b doItineraire									;Maintenant que les données propre à l'itinéraire sont chargées, l'itinéraire peut débuter
 		
 		
 				;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 3B : itin2
 itin2	
 
-		bl allumeLed1   						
+		bl allumeLed1   								;Le robot roule avec les "phares allumées"
 		bl allumeLed2
-		ldr r5, = DUREE ;allumage des leds
+		ldr r5, = DUREE 
 		bl wait
 		
-		ldr r7,=tab2
-		ldr r8,=tabActions2
-		ldr r2,=0
-		b doItineraire
+		ldr r7,=tab2									;Chargement du "tableau des durées de l'itinéraire 2" 
+		ldr r8,=tabActions2								;Chargement du "tableau des actions de l'itinéraire 2" 
+		ldr r2,=0										;Initialisation du compteur
+		b doItineraire									;Maintenant que les données propre à l'itinéraire sont chargées, l'itinéraire peut débuter
 
 		;CHOIX AVEC DUPLICATION DE CODE
 		
 		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 3B : itin2
 		
 		
-doItineraire
+doItineraire				
 		
 
-		lsl r2,#2
-		ldr r3,[r7,r2]
-		lsr r2,#2
-		ldrb r4,[r8,r2]
-		ldr r10,=1
+		lsl r2,#2										;multiplication de l'index par 4 
+		ldr r3,[r7,r2]									;pour pouvoir utiliser un offset sur le "tableau des durées" dont les valeurs sont sur 4octets
+		lsr r2,#2										;division de l'index par 4
+		ldrb r4,[r8,r2]									;pour pouvoir utiliser un offset sur le tableau des actions stockées sur un octet
+		ldr r10,=1										;valeur arbitraire servant dans loop, pour savoir s'il s'agit d'un itinéraire retour ou non
 		
 		cmp r4,#ACTION_AVANCE
-		bleq avance
+		bleq avance										;Si l'action à effectuée d'avancer, alors le robot avance
 	
 		cmp r4,#ACTION_RECULE
-		bleq recule
+		bleq recule										;Si l'action à effectuée de reculer, alors le robot recule
 		
 		cmp r4,#ACTION_GAUCHE
-		bleq gauche
+		bleq gauche										;Si l'action à effectuée de pivoter sur la gauche, alors le robot pivote sur la gauche
 
 		cmp r4,#ACTION_DROITE
-		bleq droite
+		bleq droite										;Si l'action à effectuée de pivoter sur la droite, alors le robot de pivoter sur la droite
 		
 		cmp r4,#ACTION_FIN
-		bne suite
-		b attenteConf
+		bne suite										;Si l'itinéraire n'est pas terminé, alors on continue
+		b attenteConf									;Sinon on passe à l'état de "bonne réception du colis"
 suite
-		ldr r1,=tabActionsRetour
-		add r2,#1
-		strb r4,[r1,r2]
-		b doItineraire
+		ldr r1,=tabActionsRetour						;Chargement de l'adresse du tableau d'actions Retour
+		add r2,#1										
+		strb r4,[r1,r2]									;écriture dans la case index+1 de l'action qui vient d'être effectuée avec succès
+		b doItineraire									;Rebouclage sur l'exécution de l'itinéraire, toujours pas fini
 		
 		
 loop
@@ -451,11 +454,11 @@ findR2
 		
 doItineraireRetour
 		
-		lsl r2,#2
-		ldr r3,[r7,r2]
-		lsr r2,#2
-		ldrb r4,[r8,r2]
-		ldr r10,=0
+		lsl r2,#2						;multiplication de l'index par 4 
+		ldr r3,[r7,r2]					;pour pouvoir utiliser un offset sur le "tableau des durées" dont les valeurs sont sur 4octets
+		lsr r2,#2						;division de l'index par 4
+		ldrb r4,[r8,r2]					;pour pouvoir utiliser un offset sur le tableau des actions stockées sur un octet
+		ldr r10,=0						;valeur arbitraire servant dans loop, pour savoir s'il s'agit d'un itinéraire retour ou non
 		
 		cmp r4,#ACTION_AVANCE
 		bleq avance
@@ -489,25 +492,25 @@ wait	subs r5, #1
 		
 		
 allumeLed1
-		ldr r11, = GPIO_PORTF_BASE + (PIN4<<2)  ;; @data Register = @base + (mask<<2) ==> LED1
-		ldr r0,=PIN4
+		ldr r11, = GPIO_PORTF_BASE + (PIN4<<2)  ;rechargement de l'adresse du data register ; @data Register = @base + (mask<<2) ==> LED1 ; UTILISATION DE 3 NOP ???
+		ldr r0,=PIN4							
 		str r0, [r11]
 		bx lr
 
 allumeLed2
-		ldr r12, = GPIO_PORTF_BASE + (PIN5<<2)
+		ldr r12, = GPIO_PORTF_BASE + (PIN5<<2) ;rechargement de l'adresse du data register ; @data Register = @base + (mask<<2) ==> LED2
 		ldr r0,=PIN5
 		str r0, [r12]
 		bx lr
 
 eteintLed1
-		ldr r11, = GPIO_PORTF_BASE + (PIN4<<2)  ;; @data Register = @base + (mask<<2) ==> LED1
+		ldr r11, = GPIO_PORTF_BASE + (PIN4<<2)  ;rechargement de l'adresse du data register ; @data Register = @base + (mask<<2) ==> LED1
 		ldr r0,=0
 		str r0, [r11]
 		bx lr
 
 eteintLed2
-		ldr r12, = GPIO_PORTF_BASE + (PIN5<<2)
+		ldr r12, = GPIO_PORTF_BASE + (PIN5<<2) ;rechargement de l'adresse du data register ; @data Register = @base + (mask<<2) ==> LED2
 		ldr r0,=0
 		str r0, [r12]
 		bx lr
