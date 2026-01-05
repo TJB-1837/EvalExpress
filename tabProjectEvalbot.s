@@ -281,7 +281,7 @@ suite
 loop
 		mov r12,lr;push {lr}
 		ldr r0,=0
-		cmp r10,#0 ; comparaison mode retour ou non r
+		cmp r10,#0 ; comparaison mode retour ou non 
 		beq loopRetour
 		b   loopItin
 		
