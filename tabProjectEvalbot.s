@@ -464,10 +464,10 @@ doItineraireRetour
 		bleq recule
 		
 		cmp r4,#ACTION_GAUCHE
-		bleq gauche
+		bleq droite
 
 		cmp r4,#ACTION_DROITE
-		bleq droite
+		bleq gauche
 		
 		cmp r4,#ACTION_FIN
 		beq attente
