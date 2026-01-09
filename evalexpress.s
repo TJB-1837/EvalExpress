@@ -340,7 +340,7 @@ ecritureDebutItinRetour
 
 
 		ldr r1,=tabActionsRetour						;Chargement de l'adresse du tableau de retour (actions)
-		strb r4,[r1,r2]									;écriture dans la case index de l'action au cours de laquelle est arrivé l'accident
+		;strb r4,[r1,r2]									;écriture dans la case index de l'action au cours de laquelle est arrivé l'accident
 		ldr r0,=ACTION_DROITE	
 		add r2,#1								        ;Même procédé que pour les tableaux des durées
 		strb r0,[r1,r2]
