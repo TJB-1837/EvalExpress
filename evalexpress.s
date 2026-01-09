@@ -43,6 +43,10 @@ DUREE   			EQU     0x000FFFFF; Random Value
 DUREEMOTEURS		EQU		0x00000FFF;
 DUREEBLINK   		EQU     0x002FFFFF; Random Value
 DUREEVIRAGE			EQU		6000;
+;DUREE   			EQU     0x1; Random Value
+;DUREEMOTEURS		EQU		0x2;
+;DUREEBLINK   		EQU     0x1; Random Value
+;DUREEVIRAGE			EQU		2;
 
 ; association de valeurs pour itineraire
 ACTION_AVANCE		EQU 	1
@@ -214,7 +218,7 @@ itin1
 		
 		ldr r7,=tab1									;Chargement du "tableau des durées de l'itinéraire 1" 
 		ldr r8,=tabActions1								;Chargement du "tableau des actions de l'itinéraire 1" 
-		ldr r2,=0										;Initialisation du compteur
+		ldr r2,=1										;Initialisation du compteur
 		b doItineraire									;Maintenant que les données propre à l'itinéraire sont chargées, l'itinéraire peut débuter
 		
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 3B : itin2
@@ -228,7 +232,7 @@ itin2
 		
 		ldr r7,=tab2									;Chargement du "tableau des durées de l'itinéraire 2" 
 		ldr r8,=tabActions2								;Chargement du "tableau des actions de l'itinéraire 2" 
-		ldr r2,=0										;Initialisation du compteur
+		ldr r2,=1										;Initialisation du compteur
 		b doItineraire									;Maintenant que les données propre à l'itinéraire sont chargées, l'itinéraire peut débuter
 		
 		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 3B : itin2
@@ -236,12 +240,13 @@ itin2
 		
 doItineraire				
 		
-
+		sub r2,#1
 		lsl r2,#2										;multiplication de l'index par 4 
 		ldr r3,[r7,r2]									;pour pouvoir utiliser un offset sur le "tableau des durées" dont les valeurs sont sur 4octets
 		lsr r2,#2										;division de l'index par 4
 		ldrb r4,[r8,r2]									;pour pouvoir utiliser un offset sur le tableau des actions stockées sur un octet
 		ldr r10,=1										;valeur arbitraire servant dans loop, pour savoir s'il s'agit d'un itinéraire retour ou non
+		add r2,#1
 		
 		cmp r4,#ACTION_AVANCE
 		bleq avance										;Si l'action à effectuée d'avancer, alors le robot avance
@@ -373,7 +378,11 @@ accidentLoop
 		bl allumeLed2
 		ldr r5,= DUREEBLINK
 		bl wait
-														; RELIRE SW2 COMME DANS ATTENTE CONF ? 
+		
+		ldr r0,[r8] 									;Reverification de l'état du Sw2
+		cmp r0,#0										
+		beq ecritureDebutItinRetour						
+		
 		bl eteintLed1    						
 		bl eteintLed2
 		ldr r5,= DUREEBLINK
@@ -422,6 +431,10 @@ itinRetour
 		ldr r8,=tabActionsRetour						;Chargement du "tableau des actions de l'itinéraire retour"
 		ldr r0,=ACTION_FIN
 		strb r0,[r8]									;Ajout de l'action FIN à la "fin" du tableau des actions de l'itinéraire retour
+		ldr r0,=ACTION_DROITE
+		strb r0,[r8,#1]									;Ajout de l'action DROITE à la "fin +1" du tableau des actions de l'itinéraire retour (pour se remettre dans le bon sens)
+		ldr r0,=12000
+		str r0,[r7,#4]
 		ldr r0,=0										;Initialisation de l'index à 0 pour la recherche de l'action RECULE (début de l'itinéraire retour)
 		
 loopIndex		
@@ -523,7 +536,7 @@ gauche
 		BL	MOTEUR_DROIT_ON
 		BL	MOTEUR_GAUCHE_ON   
 		BL	MOTEUR_DROIT_AVANT
-		BL	MOTEUR_GAUCHE_INVERSE
+		BL	MOTEUR_GAUCHE_ARRIERE
 		bl loop
 		BL	MOTEUR_DROIT_OFF
 		BL	MOTEUR_GAUCHE_OFF
@@ -535,7 +548,7 @@ droite
 		BL	MOTEUR_DROIT_ON
 		BL	MOTEUR_GAUCHE_ON   
 		BL	MOTEUR_GAUCHE_AVANT
-		BL	MOTEUR_DROIT_INVERSE
+		BL	MOTEUR_DROIT_ARRIERE
 		
 		bl loop
 		BL	MOTEUR_DROIT_OFF
@@ -550,6 +563,8 @@ droite
 		AREA constantes,DATA,READONLY
 
 ; Déclaration des tableaux d'itinéraires
+;tab1	DCD 3,DUREEVIRAGE,3
+
 tab1      DCD 9000,DUREEVIRAGE,9000,DUREEVIRAGE,12000,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,6000 ; Tableau des durées de l'itinéraire 1
 tab2 	  DCD 3000,DUREEVIRAGE,9000,DUREEVIRAGE,18000,DUREEVIRAGE,3000,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,12000,DUREEVIRAGE,6000,DUREEVIRAGE,6000 ; Tableau des durées de l'itinéraire 2
 

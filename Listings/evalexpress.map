@@ -1,14 +1,16 @@
-Component: ARM Compiler 6.13.1 Tool: armlink [5d895400]
+Component: Arm Compiler for Embedded 6.23 Tool: armlink [5f102400]
 
 ==============================================================================
 
 Section Cross References
 
-    tabprojectevalbot.o(.text) refers to rk_config_moteur.o(.text) for MOTEUR_INIT
-    tabprojectevalbot.o(.text) refers to tabprojectevalbot.o(constantes) for tab1
-    tabprojectevalbot.o(.text) refers to tabprojectevalbot.o(variables) for tabActionsRetour
+    evalexpress.o(.text) refers (Special) to rk_config_moteur.o(.text) for MOTEUR_DROIT_INVERSE
+    evalexpress.o(.text) refers to evalexpress.o(constantes) for tab1
+    evalexpress.o(.text) refers to evalexpress.o(variables) for tabActionsRetour
+    evalexpress.o(constantes) refers (Special) to rk_config_moteur.o(.text) for MOTEUR_DROIT_INVERSE
+    evalexpress.o(variables) refers (Special) to rk_config_moteur.o(.text) for MOTEUR_DROIT_INVERSE
     startup.o(RESET) refers to startup.o(STACK) for StackMem
-    startup.o(RESET) refers to tabprojectevalbot.o(.text) for __main
+    startup.o(RESET) refers to evalexpress.o(.text) for __main
 
 
 ==============================================================================
@@ -29,22 +31,22 @@ Image Symbol Table
     Symbol Name                              Value     Ov Type        Size  Object(Section)
 
     RK_Config_Moteur.s                       0x00000000   Number         0  rk_config_moteur.o ABSOLUTE
-    RTE\Device\LM3S9B92\Startup.s            0x00000000   Number         0  startup.o ABSOLUTE
-    tabProjectEvalbot.s                      0x00000000   Number         0  tabprojectevalbot.o ABSOLUTE
+    RTE/Device/LM3S9B92/Startup.s            0x00000000   Number         0  startup.o ABSOLUTE
+    evalexpress.s                            0x00000000   Number         0  evalexpress.o ABSOLUTE
     RESET                                    0x00000000   Section      632  startup.o(RESET)
     NmiSR                                    0x00000271   Thumb Code     0  startup.o(RESET)
     FaultISR                                 0x00000273   Thumb Code     0  startup.o(RESET)
     IntDefaultHandler                        0x00000275   Thumb Code     0  startup.o(RESET)
     .text                                    0x00000278   Section      484  rk_config_moteur.o(.text)
-    .text                                    0x0000045c   Section     1068  tabprojectevalbot.o(.text)
-    tab1                                     0x00000888   Data          76  tabprojectevalbot.o(constantes)
-    constantes                               0x00000888   Section      180  tabprojectevalbot.o(constantes)
-    tab2                                     0x000008d4   Data          68  tabprojectevalbot.o(constantes)
-    tabActions1                              0x00000918   Data          18  tabprojectevalbot.o(constantes)
-    tabActions2                              0x0000092a   Data          18  tabprojectevalbot.o(constantes)
-    tabRetour                                0x20000000   Data         100  tabprojectevalbot.o(variables)
-    variables                                0x20000000   Section      150  tabprojectevalbot.o(variables)
-    tabActionsRetour                         0x20000064   Data          50  tabprojectevalbot.o(variables)
+    .text                                    0x0000045c   Section     1096  evalexpress.o(.text)
+    tab1                                     0x000008a4   Data          76  evalexpress.o(constantes)
+    constantes                               0x000008a4   Section      180  evalexpress.o(constantes)
+    tab2                                     0x000008f0   Data          68  evalexpress.o(constantes)
+    tabActions1                              0x00000934   Data          18  evalexpress.o(constantes)
+    tabActions2                              0x00000946   Data          18  evalexpress.o(constantes)
+    tabRetour                                0x20000000   Data         100  evalexpress.o(variables)
+    variables                                0x20000000   Section      150  evalexpress.o(variables)
+    tabActionsRetour                         0x20000064   Data          50  evalexpress.o(variables)
     StackMem                                 0x20000098   Data           0  startup.o(STACK)
     STACK                                    0x20000098   Section      256  startup.o(STACK)
 
@@ -52,7 +54,7 @@ Image Symbol Table
 
     Symbol Name                              Value     Ov Type        Size  Object(Section)
 
-    BuildAttributes$$THM_ISAv4$P$D$K$B$S$PE$A:L22UL41UL21$X:L11$S22US41US21$IEEE1$~IW$USESV6$~STKCKD$USESV7$~SHL$OSPACE$EBA8$MICROLIB$PRES8$EABIv2 0x00000000   Number         0  anon$$obj.o ABSOLUTE
+    BuildAttributes$$THM_ISAv4$P$D$K$B$S$A:L22UL41UL21$X:L11$S22US41US21$IEEE1$~IW$USESV6$~STKCKD$USESV7$~SHL$OSPACE$EBA8$MICROLIB$PRES8$EABIv2 0x00000000   Number         0  anon$$obj.o ABSOLUTE
     __Vectors                                0x00000000   Data           0  startup.o(RESET)
     Reset_Handler                            0x0000026d   Thumb Code     0  startup.o(RESET)
     MOTEUR_INIT                              0x00000279   Thumb Code     0  rk_config_moteur.o(.text)
@@ -66,7 +68,7 @@ Image Symbol Table
     MOTEUR_GAUCHE_AVANT                      0x000003cb   Thumb Code     0  rk_config_moteur.o(.text)
     MOTEUR_DROIT_INVERSE                     0x000003d5   Thumb Code     0  rk_config_moteur.o(.text)
     MOTEUR_GAUCHE_INVERSE                    0x000003e1   Thumb Code     0  rk_config_moteur.o(.text)
-    __main                                   0x0000045d   Thumb Code     0  tabprojectevalbot.o(.text)
+    __main                                   0x0000045d   Thumb Code     0  evalexpress.o(.text)
     __initial_sp                             0x20000198   Data           0  startup.o(STACK)
 
 
@@ -77,26 +79,26 @@ Memory Map of the image
 
   Image Entry point : 0x0000026d
 
-  Load Region LR_1 (Base: 0x00000000, Size: 0x000009d4, Max: 0xffffffff, ABSOLUTE)
+  Load Region LR_1 (Base: 0x00000000, Size: 0x000009f0, Max: 0xffffffff, ABSOLUTE)
 
-    Execution Region ER_RO (Exec base: 0x00000000, Load base: 0x00000000, Size: 0x0000093c, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_RO (Exec base: 0x00000000, Load base: 0x00000000, Size: 0x00000958, Max: 0xffffffff, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
     0x00000000   0x00000000   0x00000278   Code   RO           13  * RESET               startup.o
     0x00000278   0x00000278   0x000001e4   Code   RO            1  * .text               rk_config_moteur.o
-    0x0000045c   0x0000045c   0x0000042c   Code   RO            6  * .text               tabprojectevalbot.o
-    0x00000888   0x00000888   0x000000b4   Data   RO            7    constantes          tabprojectevalbot.o
+    0x0000045c   0x0000045c   0x00000448   Code   RO            6  * .text               evalexpress.o
+    0x000008a4   0x000008a4   0x000000b4   Data   RO            7    constantes          evalexpress.o
 
 
-    Execution Region ER_RW (Exec base: 0x20000000, Load base: 0x0000093c, Size: 0x00000098, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_RW (Exec base: 0x20000000, Load base: 0x00000958, Size: 0x00000098, Max: 0xffffffff, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x20000000   0x0000093c   0x00000096   Data   RW            8    variables           tabprojectevalbot.o
+    0x20000000   0x00000958   0x00000096   Data   RW            8    variables           evalexpress.o
 
 
-    Execution Region ER_ZI (Exec base: 0x20000098, Load base: 0x000009d4, Size: 0x00000100, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_ZI (Exec base: 0x20000098, Load base: 0x000009f0, Size: 0x00000100, Max: 0xffffffff, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
@@ -110,12 +112,12 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
 
-       484        112          0          0          0        456   rk_config_moteur.o
-       632        622          0          0        256        300   startup.o
-      1068        114        180        150          0        600   tabprojectevalbot.o
+      1096        112        180        150          0        552   evalexpress.o
+       484        112          0          0          0        408   rk_config_moteur.o
+       632        622          0          0        256        256   startup.o
 
     ----------------------------------------------------------------------
-      2184        848        180        152        256       1356   Object Totals
+      2212        846        180        152        256       1216   Object Totals
          0          0          0          0          0          0   (incl. Generated)
          0          0          0          2          0          0   (incl. Padding)
 
@@ -130,15 +132,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-      2184        848        180        152        256       1356   Grand Totals
-      2184        848        180        152        256       1356   ELF Image Totals
-      2184        848        180        152          0          0   ROM Totals
+      2212        846        180        152        256       1216   Grand Totals
+      2212        846        180        152        256       1216   ELF Image Totals
+      2212        846        180        152          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                 2364 (   2.31kB)
+    Total RO  Size (Code + RO Data)                 2392 (   2.34kB)
     Total RW  Size (RW Data + ZI Data)               408 (   0.40kB)
-    Total ROM Size (Code + RO Data + RW Data)       2516 (   2.46kB)
+    Total ROM Size (Code + RO Data + RW Data)       2544 (   2.48kB)
 
 ==============================================================================
 
