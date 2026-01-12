@@ -281,7 +281,10 @@ loopRetour
 		ldr r5,=DUREEMOTEURS
 		bl wait
 		subs r3,#1										;Decrémentation du compteur de durée 
-		bl detectionBumpers								;Vérification des bumpers (A VERIFIER SI NECESSAIRE DE LE FAIRE ICI)
+		cmp r4,#2										; le robot recule t il ? 
+		beq suiteLoopRetour
+		bl detectionBumpers							;Vérification des bumpers 
+suiteLoopRetour
 		cmp r3,#0										;Action terminée ?
 		bne loopRetour									;Sinon, rebouclage
 		mov lr,r12;pop {pc}								;Restauration de lr
@@ -329,7 +332,7 @@ ecritureDebutItinRetour
 		ldr r1,=tabRetour								;Chargement de l'adresse du tableau de retour (durées)
 		add r2,#1										;Incrémentation de l'index pour écrire dans la case suivante
 		lsl r2,#2										;Multiplication de l'index par 4
-		ldr r0,=12000									;Chargement de la durée arbitraire du demi-tour
+		ldr r0,=11850									;Chargement de la durée arbitraire du demi-tour
 		add r2,#4										;ATTENTION JE SUIS PAS SUR DE CETTE LIGNE Décalage de 4 octets pour écrire dans la case suivante 
 		str r0,[r1,r2]									;Ecriture dans la case index+1 de la durée du demi-tour
 		ldr r0,=1000									;Chargement de la durée arbitraire du recul après le demi-tour	
@@ -432,7 +435,7 @@ itinRetour
 		strb r0,[r8]									;Ajout de l'action FIN à la "fin" du tableau des actions de l'itinéraire retour
 		ldr r0,=ACTION_DROITE
 		strb r0,[r8,#1]									;Ajout de l'action DROITE à la "fin +1" du tableau des actions de l'itinéraire retour (pour se remettre dans le bon sens)
-		ldr r0,=12000
+		ldr r0,=12160
 		str r0,[r7,#4]
 		ldr r0,=0										;Initialisation de l'index à 0 pour la recherche de l'action RECULE (début de l'itinéraire retour)
 		
@@ -562,10 +565,10 @@ droite
 		AREA constantes,DATA,READONLY
 
 ; Déclaration des tableaux d'itinéraires
-;tab1	DCD 3,DUREEVIRAGE,3
-
+;tab1	DCD 3000
+;tabActions1 DCB ACTION_AVANCE, ACTION_FIN
 tab1      DCD 9000,DUREEVIRAGE,9000,DUREEVIRAGE,12000,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,6000 ; Tableau des durées de l'itinéraire 1
-tab2 	  DCD 3000,DUREEVIRAGE,9000,DUREEVIRAGE,18000,DUREEVIRAGE,3000,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,12000,DUREEVIRAGE,6000,DUREEVIRAGE,6000 ; Tableau des durées de l'itinéraire 2
+tab2 	  DCD 3000,DUREEVIRAGE,9000,DUREEVIRAGE,18000,DUREEVIRAGE,3000,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,12000,DUREEVIRAGE,4000,DUREEVIRAGE,3000 ; Tableau des durées de l'itinéraire 2
 
 tabActions1 DCB ACTION_AVANCE,ACTION_GAUCHE,ACTION_AVANCE,ACTION_DROITE,ACTION_AVANCE,ACTION_DROITE,ACTION_AVANCE,ACTION_GAUCHE,ACTION_AVANCE,ACTION_DROITE,ACTION_AVANCE,ACTION_GAUCHE,ACTION_AVANCE,ACTION_DROITE,ACTION_AVANCE,ACTION_GAUCHE,ACTION_AVANCE,ACTION_FIN ; Tableau des actions de l'itinéraire 2
 tabActions2 DCB	1,4,1,3,1,3,1,3,1,4,1,4,1,4,1,3,1,15 ; Tableau des actions de l'itinéraire 2
