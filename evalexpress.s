@@ -209,6 +209,8 @@ attenteConfItin2
 
 		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 2 : choix itit
 		
+		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 3 : Exécution des itinéraires
+
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 3A : itin1
 itin1		
 		bl allumeLed1   								;Le robot roule avec les "phares allumées"
@@ -220,6 +222,8 @@ itin1
 		ldr r8,=tabActions1								;Chargement du "tableau des actions de l'itinéraire 1" 
 		ldr r2,=1										;Initialisation du compteur
 		b doItineraire									;Maintenant que les données propre à l'itinéraire sont chargées, l'itinéraire peut débuter
+
+		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 3A : itin1
 		
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 3B : itin2
 
@@ -307,7 +311,7 @@ loopItin
 		mov lr,r12;pop {pc}								
 		bx lr
 			
-		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 3A : itin1
+		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 3 : Exécution des itinéraires (on a pensé laisser loop, loopItin, loopRetour, et suiteLoopRetour proches les uns des autres pour une meilleure lisibilité)
 		
 		
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 4 : detection bumber
@@ -325,9 +329,8 @@ detectionBumpers
 		bx lr
 		
 		;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvFin Etat 4 : detection bumper
-		
 
-		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 4.5 : accident
+		
 ecritureDebutItinRetour
 		ldr r1,=tabRetour								;Chargement de l'adresse du tableau de retour (durées)
 		add r2,#1										;Incrémentation de l'index pour écrire dans la case suivante
@@ -352,16 +355,17 @@ ecritureDebutItinRetour
 		sub r2,#2
 		sub r2,#1
 		b itinRetour
-		
+
+		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Etat 4.5 : accident;
 accident		
-		add r2,#1										
-		lsl r2,#2
-		ldr r1,=tabRetour								;REPETITION ? 
-		str r0,[r1,r2]
+		add r2,#1										;Incrémentation de l'index pour écrire dans la case suivante
+		lsl r2,#2										
+		ldr r1,=tabRetour								;Chargement de l'adresse du tableau d'actions Retour
+		str r0,[r1,r2]									;Ecriture dans la case index+1 de la "durée" qui a pu être effectuée avec succès avant l'accident
 		lsr r2,#2
 		
-		ldr r1,=tabActionsRetour						;REPETITION ? (imo c est ici qu il faut faire l ecriture)
-		strb r4,[r1,r2]
+		ldr r1,=tabActionsRetour						;Chargement de l'adresse du tableau d'actions Retour
+		strb r4,[r1,r2]									;écriture dans la case index+1 de l'action qui était en train d'être effectuée avant l'accident
 		sub r2,#1
 		
 		BL	MOTEUR_DROIT_OFF
@@ -471,7 +475,7 @@ doItineraireRetour
 		bleq gauche									;Idem pour la droite
 		
 		cmp r4,#ACTION_FIN
-		beq attente
+		beq attente									;Si l'itinéraire est terminé, retour à l'état d'attente
 		
 		sub r2,#1
 		b doItineraireRetour		
@@ -565,7 +569,7 @@ droite
 		AREA constantes,DATA,READONLY
 
 ; Déclaration des tableaux d'itinéraires
-;tab1	DCD 3000
+;tab1	DCD 3,1,3 
 ;tabActions1 DCB ACTION_AVANCE, ACTION_FIN
 tab1      DCD 9000,DUREEVIRAGE,9000,DUREEVIRAGE,12000,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,3000,DUREEVIRAGE,6000 ; Tableau des durées de l'itinéraire 1
 tab2 	  DCD 3000,DUREEVIRAGE,9000,DUREEVIRAGE,18000,DUREEVIRAGE,3000,DUREEVIRAGE,6000,DUREEVIRAGE,3000,DUREEVIRAGE,12000,DUREEVIRAGE,4000,DUREEVIRAGE,3000 ; Tableau des durées de l'itinéraire 2
